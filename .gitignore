@@ -1,0 +1,45 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+# Ignore migrations cache files within each app's migrations folder
+**/migrations/__pycache__
+*.pyc
+
+# Virtual environments
+.env/
+venv/
+env/
+ENV/
+
+# Local database
+# When using SQLite, this file stores all your development data
+db.sqlite3
+*.sqlite3
+
+# Sensitive configuration and log files
+# Use environment variables or a separate local settings file for secrets
+local_settings.py
+.log
+*.log
+*.pot
+*.bak
+
+# Media and static files
+# These are generated during development and deployment
+media/
+static/
+
+# IDE and editor settings
+.idea/  # For PyCharm
+.vscode/ # For VS Code
+.DS_Store # macOS system files
+
+# Testing and coverage reports
+.tox/
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Deployment files
+*.tar.gz
+*.zip
