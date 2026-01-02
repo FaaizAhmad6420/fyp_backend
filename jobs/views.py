@@ -12,8 +12,9 @@ class FetchJobsView(APIView):
     """
     def get(self, request):
         remoteok_jobs = fetch_remoteok_jobs()
-        careerjet_jobs = fetch_careerjet_jobs()
-        all_jobs = remoteok_jobs + careerjet_jobs
+        # careerjet_jobs = fetch_careerjet_jobs()
+        # all_jobs = remoteok_jobs + careerjet_jobs
+        all_jobs = remoteok_jobs
 
         serializer = JobSerializer(all_jobs, many=True)
         return Response({"jobs": serializer.data}, status=status.HTTP_200_OK)

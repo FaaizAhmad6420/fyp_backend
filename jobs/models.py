@@ -7,6 +7,7 @@ class Job(models.Model):
     location = models.CharField(max_length=100)
     description = models.TextField()
     source = models.CharField(max_length=50)  # e.g., "RemoteOK", "CareerJet"
+    skills = models.JSONField(default=list)  # list of skills required
     url = models.URLField(max_length=500, blank=True, null=True)  # optional: link to job posting
     fetched_at = models.DateTimeField(auto_now_add=True)  # when job was fetched
 
