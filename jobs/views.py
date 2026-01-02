@@ -11,6 +11,12 @@ from jobs.models import Job
 from jobs.matching import calculate_match
 
 # Create your views here.
+class GetJobsView(APIView):
+    def get(self, request):
+        jobs = Job.objects.all()
+        serializer = JobSerializer(jobs, many=True)
+        return Response({"jobs": serializer.data}, status=status.HTTP_200_OK)
+
 class FetchJobsView(APIView):
     """
     Fetch jobs from APIs and return stored jobs.
