@@ -52,7 +52,8 @@ class JobMatchView(APIView):
                 "title": job.title,
                 "company": job.company,
                 "location": job.location,
-                "match_score": score
+                "match_score": score,
+                "url": job.url,
             })
 
         # Sort jobs by match score
