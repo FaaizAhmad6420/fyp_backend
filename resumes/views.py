@@ -10,7 +10,7 @@ from pdfplumber import open as pdf_open
 import docx
 
 # fallback skill list
-SKILLS = ["python", "django", "react", "javascript", "sql", "html", "css"]
+SKILLS = []
 
 class ResumeUploadView(generics.ListCreateAPIView):
     serializer_class = ResumeSerializer
@@ -24,7 +24,6 @@ class ResumeUploadView(generics.ListCreateAPIView):
         resume = serializer.save(user=self.request.user)
         file_path = resume.file.path
 
-        # 🔹 Try apilayer first
         try:
             parsed_data = parse_resume(file_path)
             resume.parsed_data = parsed_data
@@ -33,7 +32,6 @@ class ResumeUploadView(generics.ListCreateAPIView):
             resume.skills = skills
 
         except Exception:
-            # 🔸 Fallback local parsing
             text = ""
 
             if file_path.endswith(".pdf"):

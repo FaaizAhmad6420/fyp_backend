@@ -8,6 +8,7 @@ class Resume(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # Each resume belongs to a user
     file = models.FileField(upload_to='resumes/')            # Uploaded file saved in 'resumes/' folder
     extracted_text = models.TextField(blank=True)            # Stores extracted text from the resume
+    parsed_data = models.JSONField(default=dict, blank=True)
     skills = models.JSONField(default=list)                 # Stores skills as a list (JSON)
     created_at = models.DateTimeField(auto_now_add=True)     # Auto timestamp when uploaded
 
