@@ -9,6 +9,9 @@ from .utils import extract_skills
 from pdfplumber import open as pdf_open
 import docx
 
+from .ai_analysis import analyze_resume
+import json
+
 # fallback skill list
 SKILLS = []
 
@@ -27,6 +30,20 @@ class ResumeUploadView(generics.ListCreateAPIView):
         try:
             parsed_data = parse_resume(file_path)
             resume.parsed_data = parsed_data
+
+            # AI Resume Analysis
+            try:
+                ai_response = analyze_resume(parsed_data)
+
+                ai_data = json.loads(ai_response)
+
+                resume.ai_analysis = ai_data
+                resume.ats_score = ai_data.get("ats_score", 0)
+
+            except Exception as e:
+                resume.ai_analysis = {
+                    "error": str(e)
+                }
 
             skills = extract_skills(parsed_data)
             resume.skills = skills

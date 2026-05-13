@@ -10,6 +10,8 @@ class Resume(models.Model):
     extracted_text = models.TextField(blank=True)            # Stores extracted text from the resume
     parsed_data = models.JSONField(default=dict, blank=True)
     skills = models.JSONField(default=list)                 # Stores skills as a list (JSON)
+    ai_analysis = models.JSONField(default=dict, blank=True)
+    ats_score = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)     # Auto timestamp when uploaded
 
     def __str__(self):
