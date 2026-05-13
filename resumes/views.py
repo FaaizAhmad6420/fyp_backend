@@ -12,6 +12,9 @@ import docx
 from .ai_analysis import analyze_resume
 import json
 
+from .cover_letter import generate_cover_letter
+from jobs.models import Job
+
 # fallback skill list
 SKILLS = []
 
@@ -33,12 +36,41 @@ class ResumeUploadView(generics.ListCreateAPIView):
 
             # AI Resume Analysis
             try:
-                ai_response = analyze_resume(parsed_data)
+                try:
+                    ai_data = analyze_resume(parsed_data)
 
-                ai_data = json.loads(ai_response)
+                    resume.ai_analysis = ai_data
+                    resume.ats_score = ai_data.get("ats_score", 0)
+
+                except Exception as e:
+                    resume.ai_analysis = {
+                        "error": str(e)
+                    }
 
                 resume.ai_analysis = ai_data
                 resume.ats_score = ai_data.get("ats_score", 0)
+
+                # Generate AI Cover Letter
+                try:
+                    first_job = Job.objects.order_by("-id").first()
+
+                    if first_job:
+                        job_data = {
+                            "title": first_job.title,
+                            "company": first_job.company,
+                            "description": first_job.description,
+                            "skills": first_job.skills,
+                        }
+
+                        cover_letter = generate_cover_letter(
+                            parsed_data,
+                            job_data
+                        )
+
+                        resume.cover_letter = cover_letter
+
+                except Exception as e:
+                    print("Cover Letter Error:", e)
 
             except Exception as e:
                 resume.ai_analysis = {

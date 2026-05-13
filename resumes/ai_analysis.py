@@ -1,33 +1,52 @@
 import requests
 import json
-
+import re
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
 
 
+def extract_json(text):
+    """
+    Extract valid JSON from AI response
+    """
+
+    match = re.search(r"\{.*\}", text, re.DOTALL)
+
+    if match:
+        return json.loads(match.group())
+
+    return {}
+
+
 def analyze_resume(parsed_data):
-    """
-    Sends resume data to Ollama AI
-    and gets ATS analysis
-    """
 
     prompt = f"""
-    Analyze this resume data.
+    You are an ATS Resume Analyzer AI.
 
-    Resume:
+    Analyze this resume carefully.
+
+    Resume Data:
     {json.dumps(parsed_data, indent=2)}
 
-    Return ONLY valid JSON in this format:
+    IMPORTANT:
+    Return ONLY valid JSON.
+    No explanation.
+    No markdown.
+    No extra text.
+
+    JSON format:
 
     {{
-      "ats_score": number,
-      "career_domain": "string",
-      "missing_skills": ["skill1", "skill2"],
-      "strengths": ["strength1", "strength2"],
-      "suggestions": ["suggestion1", "suggestion2"]
+      "ats_score": 85,
+      "career_domain": "Backend Development",
+      "missing_skills": ["Docker", "AWS"],
+      "strengths": [
+        "Strong Django experience"
+      ],
+      "suggestions": [
+        "Add measurable achievements"
+      ]
     }}
-
-    Do not add explanations.
     """
 
     payload = {
@@ -40,4 +59,6 @@ def analyze_resume(parsed_data):
 
     data = response.json()
 
-    return data["response"]
+    ai_text = data["response"]
+
+    return extract_json(ai_text)
