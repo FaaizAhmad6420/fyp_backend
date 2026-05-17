@@ -15,6 +15,10 @@ import json
 from .cover_letter import generate_cover_letter
 from jobs.models import Job
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .tailored_resume import generate_tailored_resume
+
 # fallback skill list
 SKILLS = []
 
@@ -97,3 +101,44 @@ class ResumeUploadView(generics.ListCreateAPIView):
             resume.skills = [s for s in SKILLS if s in text.lower()]
 
         resume.save()
+
+class GenerateTailoredResumeView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+
+        resume_id = request.data.get("resume_id")
+        job_id = request.data.get("job_id")
+
+        try:
+            resume = Resume.objects.get(
+                id=resume_id,
+                user=request.user
+            )
+
+            job = Job.objects.get(id=job_id)
+
+            job_data = {
+                "title": job.title,
+                "company": job.company,
+                "description": job.description,
+                "skills": job.skills,
+            }
+
+            tailored_resume = generate_tailored_resume(
+                resume.parsed_data,
+                job_data
+            )
+
+            resume.tailored_resume = tailored_resume
+            resume.save()
+
+            return Response({
+                "message": "Tailored resume generated",
+                "tailored_resume": tailored_resume
+            })
+
+        except Exception as e:
+            return Response({
+                "error": str(e)
+            }, status=400)

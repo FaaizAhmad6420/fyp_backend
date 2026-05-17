@@ -13,6 +13,7 @@ class Resume(models.Model):
     ai_analysis = models.JSONField(default=dict, blank=True)
     ats_score = models.IntegerField(default=0)
     cover_letter = models.TextField(blank=True)
+    tailored_resume = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)     # Auto timestamp when uploaded
 
     def __str__(self):
