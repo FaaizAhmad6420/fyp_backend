@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from resumes.models import Resume
 from jobs.models import Job
 
+from rest_framework import generics
 from .models import JobApplication
 from .serializers import JobApplicationSerializer
 
@@ -72,3 +73,13 @@ class ApplyJobView(APIView):
         )
 
         return Response(serializer.data)
+    
+class ApplicationListView(generics.ListAPIView):
+
+    serializer_class = JobApplicationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return JobApplication.objects.filter(
+            user=self.request.user
+        ).order_by("-created_at")
