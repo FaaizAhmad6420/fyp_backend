@@ -9,6 +9,9 @@ from rest_framework import generics
 from .models import JobApplication
 from .serializers import JobApplicationSerializer
 
+from applications.cover_letter import generate_cover_letter
+from applications.tailored_resume import generate_tailored_resume
+
 
 class ApplyJobView(APIView):
 
@@ -17,7 +20,6 @@ class ApplyJobView(APIView):
     def post(self, request):
 
         user = request.user
-
         job_id = request.data.get("job_id")
 
         if not job_id:
@@ -26,7 +28,6 @@ class ApplyJobView(APIView):
                 status=400
             )
 
-        # latest resume
         resume = Resume.objects.filter(
             user=user
         ).last()
@@ -46,7 +47,6 @@ class ApplyJobView(APIView):
                 status=404
             )
 
-        # prevent duplicate
         already_applied = JobApplication.objects.filter(
             user=user,
             job=job
@@ -58,12 +58,40 @@ class ApplyJobView(APIView):
                 status=400
             )
 
+        job_data = {
+            "title": job.title,
+            "company": job.company,
+            "description": job.description,
+            "skills": job.skills,
+        }
+
+        try:
+
+            cover_letter = generate_cover_letter(
+                resume.parsed_data,
+                job_data
+            )
+
+            tailored_resume = generate_tailored_resume(
+                resume.parsed_data,
+                job_data
+            )
+
+        except Exception as e:
+
+            return Response(
+                {
+                    "error": f"AI generation failed: {str(e)}"
+                },
+                status=500
+            )
+
         application = JobApplication.objects.create(
             user=user,
             resume=resume,
             job=job,
-            tailored_resume=resume.tailored_resume,
-            cover_letter=resume.cover_letter,
+            cover_letter=cover_letter,
+            tailored_resume=tailored_resume,
             ats_score=resume.ats_score,
             status="submitted"
         )
@@ -73,7 +101,7 @@ class ApplyJobView(APIView):
         )
 
         return Response(serializer.data)
-    
+
 class ApplicationListView(generics.ListAPIView):
 
     serializer_class = JobApplicationSerializer

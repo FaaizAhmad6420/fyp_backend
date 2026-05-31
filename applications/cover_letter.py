@@ -18,14 +18,17 @@ def generate_cover_letter(resume_data, job_data):
     {json.dumps(job_data, indent=2)}
 
     RULES:
-    - Use professional tone
-    - Mention relevant technical skills
+    - Write a personalized cover letter
+    - Mention the candidate's actual skills
     - Mention company name
     - Mention job title
-    - Keep under 300 words
-    - Do NOT invent fake experience
-    - Do NOT use placeholders
-    - Return plain text only
+    - Professional tone
+    - Do not invent fake experience
+    - Do not use placeholders
+    - End with a professional closing
+    - Return CLEAN HTML format
+    - Use <h1>, <p>, <strong>, <ul><li>
+    - NO markdown
     """
 
     payload = {

@@ -16,6 +16,12 @@ class GetJobsView(APIView):
         jobs = Job.objects.all()
         serializer = JobSerializer(jobs, many=True)
         return Response({"jobs": serializer.data}, status=status.HTTP_200_OK)
+    
+class JobDetailView(APIView):
+    def get(self, request, id):
+        job = Job.objects.get(id=id)
+        serializer = JobSerializer(job)
+        return Response(serializer.data)
 
 class FetchJobsView(APIView):
     """
@@ -36,15 +42,29 @@ class JobMatchView(APIView):
     def get(self, request):
         user = request.user
 
-        # Get latest resume
+        # Get latest resume (optional)
         resume = Resume.objects.filter(user=user).last()
-        if not resume:
-            return Response({"error": "No resume uploaded"}, status=400)
 
-        user_skills = resume.skills
+        jobs = Job.objects.all()
         results = []
 
-        for job in Job.objects.all():
+        # CASE 1: No resume → return jobs without scoring
+        if not resume:
+            for job in jobs:
+                results.append({
+                    "job_id": job.id,
+                    "title": job.title,
+                    "company": job.company,
+                    "location": job.location,
+                    "url": job.url,
+                })
+
+            return Response(results)
+
+        # CASE 2: Resume exists → calculate match score
+        user_skills = resume.skills
+
+        for job in jobs:
             score = calculate_match(user_skills, job.skills)
 
             results.append({
@@ -56,7 +76,7 @@ class JobMatchView(APIView):
                 "url": job.url,
             })
 
-        # Sort jobs by match score
-        results = sorted(results, key=lambda x: x["match_score"], reverse=True)
+        # Sort only when score exists
+        results = sorted(results, key=lambda x: x.get("match_score", 0), reverse=True)
 
         return Response(results)

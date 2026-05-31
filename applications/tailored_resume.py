@@ -18,13 +18,16 @@ def generate_tailored_resume(parsed_data, job_data):
     {json.dumps(job_data, indent=2)}
 
     TASKS:
+    - Optimize resume for ATS systems
+    - Prioritize skills matching the job
     - Improve professional summary
-    - Prioritize relevant skills
-    - Add ATS keywords naturally
     - Highlight relevant experience
-    - Keep professional formatting
-    - Do NOT invent fake projects or fake experience
-    - Return clean plain text only
+    - Add important job keywords naturally
+    - Keep all information truthful
+    - Do not invent projects or experience
+    - Return CLEAN HTML formatted resume
+    - Use proper headings, sections, bullet lists
+    - Must be ATS friendly HTML (no CSS required)
 
     Format:
     Name
