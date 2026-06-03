@@ -1,8 +1,11 @@
 from rest_framework import serializers
+
+from jobs.serializers import JobSerializer
 from .models import JobApplication
 
 
 class JobApplicationSerializer(serializers.ModelSerializer):
+    job = JobSerializer()
 
     class Meta:
         model = JobApplication
