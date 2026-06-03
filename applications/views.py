@@ -12,6 +12,15 @@ from .serializers import JobApplicationSerializer
 from applications.cover_letter import generate_cover_letter
 from applications.tailored_resume import generate_tailored_resume
 
+from rest_framework.decorators import api_view, permission_classes
+
+from io import BytesIO
+from django.http import HttpResponse
+
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.pagesizes import A4
+
 
 class ApplyJobView(APIView):
 
@@ -111,3 +120,124 @@ class ApplicationListView(generics.ListAPIView):
         return JobApplication.objects.filter(
             user=self.request.user
         ).order_by("-created_at")
+
+class UpdateApplicationView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+
+        try:
+            application = JobApplication.objects.get(
+                id=pk,
+                user=request.user
+            )
+
+            cover_letter = request.data.get("cover_letter")
+            tailored_resume = request.data.get("tailored_resume")
+
+            if cover_letter is not None:
+                application.cover_letter = cover_letter
+
+            if tailored_resume is not None:
+                application.tailored_resume = tailored_resume
+
+            application.save()
+
+            return Response({
+                "message": "Application updated successfully"
+            })
+
+        except JobApplication.DoesNotExist:
+            return Response(
+                {"error": "Not found"},
+                status=404
+            )
+
+class ApplicationDetailView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+
+        try:
+            application = JobApplication.objects.get(
+                id=pk,
+                user=request.user
+            )
+
+            serializer = JobApplicationSerializer(application)
+
+            return Response(serializer.data)
+
+        except JobApplication.DoesNotExist:
+            return Response(
+                {"error": "Not found"},
+                status=404
+            )
+
+class DownloadCoverLetterPDF(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+
+        application = JobApplication.objects.get(
+            id=pk,
+            user=request.user
+        )
+
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4)
+
+        styles = getSampleStyleSheet()
+        content = []
+
+        content.append(Paragraph("Cover Letter", styles["Title"]))
+        content.append(Spacer(1, 12))
+        content.append(Paragraph(application.cover_letter or "", styles["Normal"]))
+
+        doc.build(content)
+
+        buffer.seek(0)
+
+        return HttpResponse(
+            buffer,
+            content_type="application/pdf",
+            headers={
+                "Content-Disposition": "attachment; filename=cover_letter.pdf"
+            }
+        )
+
+class DownloadResumePDF(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+
+        application = JobApplication.objects.get(
+            id=pk,
+            user=request.user
+        )
+
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4)
+
+        styles = getSampleStyleSheet()
+        content = []
+
+        content.append(Paragraph("Tailored Resume", styles["Title"]))
+        content.append(Spacer(1, 12))
+        content.append(Paragraph(application.tailored_resume or "", styles["Normal"]))
+
+        doc.build(content)
+
+        buffer.seek(0)
+
+        return HttpResponse(
+            buffer,
+            content_type="application/pdf",
+            headers={
+                "Content-Disposition": "attachment; filename=resume.pdf"
+            }
+        )

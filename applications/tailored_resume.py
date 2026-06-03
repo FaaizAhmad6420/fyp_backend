@@ -27,7 +27,9 @@ def generate_tailored_resume(parsed_data, job_data):
     - Do not invent projects or experience
     - Return CLEAN HTML formatted resume
     - Use proper headings, sections, bullet lists
-    - Must be ATS friendly HTML (no CSS required)
+    - Return CLEAN HTML format
+    - Use <h1>, <p>, <strong>, <ul><li>
+    - NO markdown
 
     Format:
     Name
