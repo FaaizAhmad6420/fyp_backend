@@ -2,6 +2,9 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from xhtml2pdf import pisa
+from django.http import HttpResponse
+
 from resumes.models import Resume
 from jobs.models import Job
 
@@ -15,11 +18,121 @@ from applications.tailored_resume import generate_tailored_resume
 from rest_framework.decorators import api_view, permission_classes
 
 from io import BytesIO
-from django.http import HttpResponse
+
 
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.pagesizes import A4
+
+from applications.pdf_generator import generate_pdf
+
+
+
+PDF_STYLE = """
+<style>
+
+@page {
+    size: A4;
+    margin: 1.5cm;
+}
+
+body {
+    font-family: Helvetica;
+    font-size: 11pt;
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+
+h1 {
+    font-size: 22pt;
+    margin-bottom: 10px;
+    color: #1f2937;
+}
+
+h2 {
+    font-size: 16pt;
+    margin-top: 15px;
+    margin-bottom: 8px;
+    color: #374151;
+    border-bottom: 1px solid #d1d5db;
+}
+
+h3 {
+    font-size: 13pt;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+p {
+    margin-bottom: 8px;
+}
+
+ul {
+    margin-left: 20px;
+}
+
+li {
+    margin-bottom: 4px;
+}
+
+strong {
+    font-weight: bold;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 8px;
+}
+
+blockquote {
+    border-left: 4px solid #2563eb;
+    padding-left: 10px;
+    color: #555;
+}
+
+img {
+    max-width: 100%;
+}
+
+pre {
+    white-space: pre-wrap;
+}
+
+</style>
+"""
+
+
+def html_to_pdf(html):
+
+    result = BytesIO()
+
+    pdf_html = f"""
+    <html>
+        <head>
+            {PDF_STYLE}
+        </head>
+        <body>
+            {html}
+        </body>
+    </html>
+    """
+
+    pisa.CreatePDF(
+        pdf_html,
+        dest=result
+    )
+
+    result.seek(0)
+
+    return result
 
 
 class ApplyJobView(APIView):
@@ -187,25 +300,16 @@ class DownloadCoverLetterPDF(APIView):
             user=request.user
         )
 
-        buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4)
-
-        styles = getSampleStyleSheet()
-        content = []
-
-        content.append(Paragraph("Cover Letter", styles["Title"]))
-        content.append(Spacer(1, 12))
-        content.append(Paragraph(application.cover_letter or "", styles["Normal"]))
-
-        doc.build(content)
-
-        buffer.seek(0)
+        pdf = generate_pdf(
+            application.cover_letter or ""
+        )
 
         return HttpResponse(
-            buffer,
+            pdf,
             content_type="application/pdf",
             headers={
-                "Content-Disposition": "attachment; filename=cover_letter.pdf"
+                "Content-Disposition":
+                "attachment; filename=cover_letter.pdf"
             }
         )
 
@@ -220,24 +324,15 @@ class DownloadResumePDF(APIView):
             user=request.user
         )
 
-        buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4)
-
-        styles = getSampleStyleSheet()
-        content = []
-
-        content.append(Paragraph("Tailored Resume", styles["Title"]))
-        content.append(Spacer(1, 12))
-        content.append(Paragraph(application.tailored_resume or "", styles["Normal"]))
-
-        doc.build(content)
-
-        buffer.seek(0)
+        pdf = generate_pdf(
+            application.tailored_resume or ""
+        )
 
         return HttpResponse(
-            buffer,
+            pdf,
             content_type="application/pdf",
             headers={
-                "Content-Disposition": "attachment; filename=resume.pdf"
+                "Content-Disposition":
+                "attachment; filename=resume.pdf"
             }
         )
